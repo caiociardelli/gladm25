@@ -9,7 +9,7 @@ If you use SphModel, please, cite the following paper:
 
 Ciardelli, C., Bozdağ, E. and Peter, D., 2020. SphGLLTools: A set of routines for visualization, processing, sharing, and spherical harmonics analysis of tomographic models defined on GLL meshes. Computer & Geosciences, submitted.
 
-# GLADM25
+# GLADM-25
 -----------------------
 
 Please, also make sure to cite the author of GLADM25:
