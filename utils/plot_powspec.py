@@ -103,7 +103,7 @@ def helpMenu ():
 
 if __name__ == '__main__':
 
-  model = 'S362ANI'
+  model = 'GLADM25'
 
   if len (sys.argv) != 2:
 
