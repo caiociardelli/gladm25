@@ -12,7 +12,7 @@ Ciardelli, C., Bozdağ, E. and Peter, D., 2020. SphGLLTools: A set of routines f
 # GLADM-25
 -----------------------
 
-Please, also make sure to cite the author of GLADM25:
+Please, also make sure to cite the authors of GLAD-M25:
 
 Lei, W., Ruan, Y., Bozdağ, E., Peter, D., Lefebvre, M., Komatitsch, D., Tromp, J., Hill, J., Podhorszki, N., Pugmire, D., 2020. Global adjoint tomography—model glad-m25. Geophysical Journal International 223, 1–21. URL: https://doi.org/10.1093/gji/ggaa253.
 
@@ -27,7 +27,7 @@ Lei, W., Ruan, Y., Bozdağ, E., Peter, D., Lefebvre, M., Komatitsch, D., Tromp, 
 * Python 2.7.12 or greater;
 * GMT 6.0.0 or greater;
 
-2. Download the latest version of GLADM25 at [SphModel:GLADM25](https://github.com/caiociardelli/gladm25).
+2. Download the latest version of GLAD-M25 at [SphModel:GLAD-M25](https://github.com/caiociardelli/gladm25).
 
 3. Untar the crustal block model using:
 
