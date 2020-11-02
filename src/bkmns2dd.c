@@ -373,12 +373,12 @@ int main (int argc, char *argv[])
 
   unsigned np_b, nt_b, nr_b;
 
+  fprintf (stderr, "\nReading block model from %s.bin file...\n", prm);
+
   if (checkBlockModelHeaderIO (readBlockModelHeader (prm,
                                                      &np_b, &nt_b, &nr_b))) return 1;
 
   double (*Bm)[nt_b][nr_b] = malloc (sizeof (double[np_b][nt_b][nr_b]));
-
-  fprintf (stderr, "\nReading block model from %s.bin file...\n", prm);
 
   if (checkBlockModelIO (readBlockModel (prm, np_b, nt_b, nr_b, Bm))) return 1;
 
