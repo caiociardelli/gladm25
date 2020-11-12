@@ -57,7 +57,7 @@ Development is hosted on GitHub at [SphGLLTools](https://github.com/caiociardell
 
 This parametrization includes Vpv (km/s), Vph (km/s), Vsv (km/s), Vsh (km/s), Eta, and Rho (g/cm^3). The perturbations for the default parameters, as well as some derived parameters such as the isotropic velocities (Vp and Vs), the bulk sound speed, the Vp/Vs ratios, and the transverse isotropy, can also be computed using these routines.
 
-The model is composed of four zones:
+The model is composed of four layers:
 
 Zone 1: Represents the crust using a block model. The horizontal resolution is 0.5 degrees, both in latitude and longitude, and the vertical resolution is 1 km. This zone stretches from 5 km above sea level to 80 km depth.
 
