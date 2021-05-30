@@ -22,7 +22,7 @@
  BKMNS2DD
 
  USAGE
-   ./bin/bkmns2dd PARAMETER MIN_RADIUS MAX_RADIUS LAT1 LON1 LAT2 LON2 HORIZONTAL_RESOLUTION
+   ./bin/bkmns2dd PARAMETER MIN_DEPTH MAX_DEPTH LAT1 LON1 LAT2 LON2 HORIZONTAL_RESOLUTION
                   RADIAL_RESOLUTION NMAX
 
  EXAMPLE
@@ -46,7 +46,7 @@
    and the great circle from the command line, and creates a vertical cross-section of the model
    up to the requested spherical harmonics degree. In case you don't provide NMAX, all the
    coefficients, the routine will expand all the coefficients. If you want the perturbations
-   instead of the absolute values, just add a 'd' at beginning of the parameter code (e.g dvs,
+   instead of the absolute values, just add a 'd' at beginning of the parameter code (e.g., dvs,
    drho, etc). The routine writes the output to a file called PARAMETER_VCS.dat.
 
 ----------------------------------------------------------------------------------------------- */
@@ -280,7 +280,7 @@ static void helpMenu (void)
   char *help_menu = "\n BKMNS2DD"
 
                     "\n\n USAGE"
-                    "\n    ./bin/bkmns2dd PARAMETER MIN_RADIUS MAX_RADIUS LAT1 LON1 LAT2 LON2 HORIZONTAL_RESOLUTION"
+                    "\n    ./bin/bkmns2dd PARAMETER MIN_DEPTH MAX_DEPTH LAT1 LON1 LAT2 LON2 HORIZONTAL_RESOLUTION"
                     "\n                   RADIAL_RESOLUTION NMAX"
 
                     "\n\n EXAMPLE"
@@ -304,7 +304,7 @@ static void helpMenu (void)
                     "\n    and the great circle from the command line, and creates a vertical cross-section of the model"
                     "\n    up to the requested spherical harmonics degree. In case you don't provide NMAX, all the"
                     "\n    coefficients, the routine will expand all the coefficients. If you want the perturbations"
-                    "\n    instead of the absolute values, just add a 'd' at beginning of the parameter code (e.g dvs,"
+                    "\n    instead of the absolute values, just add a 'd' at beginning of the parameter code (e.g., dvs,"
                     "\n    drho, etc). The routine writes the output to a file called PARAMETER_VCS.dat.\n\n";
 
   fprintf (stderr, "%s", help_menu);
@@ -373,12 +373,12 @@ int main (int argc, char *argv[])
 
   unsigned np_b, nt_b, nr_b;
 
-  fprintf (stderr, "\nReading block model from %s.bin file...\n", prm);
-
   if (checkBlockModelHeaderIO (readBlockModelHeader (prm,
                                                      &np_b, &nt_b, &nr_b))) return 1;
 
   double (*Bm)[nt_b][nr_b] = malloc (sizeof (double[np_b][nt_b][nr_b]));
+
+  fprintf (stderr, "\nReading block model from %s.bin file...\n", prm);
 
   if (checkBlockModelIO (readBlockModel (prm, np_b, nt_b, nr_b, Bm))) return 1;
 
