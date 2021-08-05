@@ -44,7 +44,7 @@ $ make
 ## Usage
 -----------------------
 
-All routines have a help menu that shows up wherever you run them with no or with a wrong number of command-line parameters. The
+All routines have a help menu that shows up whenever you run them with no or with a wrong number of command-line parameters. The
 same menu is also at the beginning of each source code. For more details, please, refer to the manual of `SphGLLTools`.
 
 ## Development

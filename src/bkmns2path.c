@@ -19,31 +19,27 @@
 
 -----------------------------------------------------------------------------------------------
 
- BKMNS2PF
+ BKMNS2PATH
 
  USAGE
-   ./bin/bkmns2pf PARAMETER MIN_DEPTH MAX_DEPTH LAT LON RESOLUTION NMAX
+   ./bin/bkmns2path PARAMETER INPUT_FILE NMAX"
 
  EXAMPLE
-   ./bin/bkmns2pf rho 10 2891 0.8 -24.2 1.0 10
+   ./bin/bkmns2path rho example.txt 10"
 
- COMMAND-LINE ARGUMENTS
+ COMMAND-LINE ARGUMENTS"
    PARAMETER              - model parameter to be expanded (vph, rho, eta, vsv, etc.)
-   MIN_DEPTH              - minimum depth
-   MAX_DEPTH              - maximum depth
-   LAT LON                - latitude and longitude of the point
-   RESOLUTION             - spatial distance (in km) between grid points along the radial
-                            direction
+   INPUT_FILE             - input ASCII file containing the coordinates of the points
+                            (latitude, longitude, and depth) at which you want the values
    NMAX (optional)        - maximum degree of the spherical harmonics expansion
 
- DESCRIPTION
-   Reads the desired model parameter, minimum depth, maximum depth, the coordinates of the point
-   in which you want the profile and the grid spacing along the radial direction, and creates a
-   one-dimensional profile of the model up to the requested spherical harmonics degree. In case
+ DESCRIPTION"
+   Reads the desired model parameter and the coordinates of the points from the INPUT_FILE and
+   outputs the corresponding values up to the requested spherical harmonics degree. In case
    you don't provide NMAX, all the coefficients, the routine will expand all the coefficients.
-   If you want the perturbations instead of the absolute values, just add a 'd' at beginning of
-   the parameter code (e.g., dvs, drho, etc). The routine writes the output to a file called
-   PARAMETER_PF.dat.
+   If you want the perturbations instead of the absolute values, just add a 'd' at beginning
+   of the parameter code (e.g., dvs, drho, etc). The routine writes the result to the standard
+   output.
 
 ----------------------------------------------------------------------------------------------- */
 
@@ -167,21 +163,21 @@ static double block2Crust (struct SphericalBoundaries *sb,
 }
 
 static void expandCrust (struct SphericalBoundaries *sb,
-                         double r1, double r2, unsigned nr,
-                         double R[nr], double t, double p,
+                         double r1, double r2, unsigned np,
+                         double R[np], double Theta[np], double Phi[np],
                          unsigned np_b, unsigned nt_b, unsigned nr_b,
-                         double Bm[np_b][nt_b][nr_b], double M[nr],
+                         double Bm[np_b][nt_b][nr_b], double M[np],
                          unsigned nl,
                          struct MeanModel Mm[nl], bool dvv)
 {
   /* Expands crust from block model */
-  for (unsigned i = 0; i < nr; i++)
+  for (unsigned i = 0; i < np; i++)
   {
     double r = R[i];
 
     if (r >= r1 && r <= r2)
     {
-      double v = block2Crust (sb, r1, r2, r, t, p,
+      double v = block2Crust (sb, r1, r2, r, Theta[i], Phi[i],
                               np_b, nt_b, nr_b, Bm);
 
       M[i] = dvv && v ? 100 * log (v / gMeanModel (r, nl, Mm)) : v;
@@ -189,13 +185,13 @@ static void expandCrust (struct SphericalBoundaries *sb,
   }
 }
 
-static void expandMantel (double r1, double r2, unsigned nr,
-                          double R[nr], double t, double p,
+static void expandMantel (double r1, double r2, unsigned np,
+                          double R[np], double Theta[np], double Phi[np],
                           unsigned ns, unsigned dg,
                           unsigned nnt, unsigned N,
                           unsigned nlg, double T[nnt],
                           double A[ns][nlg], double B[ns][nlg],
-                          double M[nr], unsigned nl,
+                          double M[np], unsigned nl,
                           struct MeanModel Mm[nl], bool dvv)
 {
   /* Expands mantle from B-splines and spherical harmonics coefficients */
@@ -205,23 +201,23 @@ static void expandMantel (double r1, double r2, unsigned nr,
 
   long double *nF = malloc (sizeof (long double[nlg]));
 
-  long double  (*P) = malloc (sizeof (long double[N + 2]));
-  long double (*nP) = malloc (sizeof (long double[N + 2]));
+  long double  (*P)[N + 2] = malloc (sizeof (long double[np][N + 2]));
+  long double (*nP)[N + 2] = malloc (sizeof (long double[np][N + 2]));
 
   nmlFactors (N, nlg, nF);
 
-  double (*C) = malloc (sizeof (double[N + 1]));
-  double (*S) = malloc (sizeof (double[N + 1]));
+  double (*C)[N + 1] = malloc (sizeof (double[np][N + 1]));
+  double (*S)[N + 1] = malloc (sizeof (double[np][N + 1]));
 
-  azimuthalBasisPf (p, N, C, S);
+  azimuthalBasis (np, Phi, N, C, S);
 
   double dr_1 = (NPT - 1) / (r2 - r1);
 
   for (unsigned n = 0; n <= N; n++)
   {
-    polarBasisPf (t, n, nlg, N, nF, P, nP);
+    polarBasis (np, Theta, n, nlg, N, nF, P, nP);
 
-    for (unsigned i = 0; i < nr; i++)
+    for (unsigned i = 0; i < np; i++)
     {
       double r = R[i];
 
@@ -231,8 +227,8 @@ static void expandMantel (double r1, double r2, unsigned nr,
 
       for (unsigned m = 0; m <= n; m++)
       {
-        double Cmn = nP[m + 1] * C[m];
-        double Smn = nP[m + 1] * S[m];
+        double Cmn = nP[i][m + 1] * C[i][m];
+        double Smn = nP[i][m + 1] * S[i][m];
 
         unsigned mni = mN2I (m, n);
 
@@ -246,7 +242,7 @@ static void expandMantel (double r1, double r2, unsigned nr,
 
   if (dvv)
 
-    for (unsigned i = 0; i < nr; i++)
+    for (unsigned i = 0; i < np; i++)
     {
       double r = R[i];
 
@@ -265,38 +261,34 @@ static void expandMantel (double r1, double r2, unsigned nr,
 
 static void helpMenu (void)
 {
-  char *help_menu = "\n BKMNS2PF"
+  char *help_menu = "\n BKMNS2PATH"
 
                     "\n\n USAGE"
-                    "\n    ./bin/bkmns2pf PARAMETER MIN_DEPTH MAX_DEPTH LAT LON RESOLUTION NMAX"
+                    "\n    ./bin/bkmns2path PARAMETER INPUT_FILE NMAX"
 
                     "\n\n EXAMPLE"
-                    "\n    ./bin/bkmns2pf rho 10 2891 0.8 -24.2 1.0 10"
+                    "\n    ./bin/bkmns2path rho example.txt 10"
 
                     "\n\n COMMAND-LINE ARGUMENTS"
                     "\n    PARAMETER              - model parameter to be expanded (vph, rho, eta, vsv, etc.)"
-                    "\n    MIN_DEPTH              - minimum depth"
-                    "\n    MAX_DEPTH              - maximum depth"
-                    "\n    LAT LON                - latitude and longitude of the point"
-                    "\n    RESOLUTION             - spatial distance (in km) between grid points along the radial"
-                    "\n                             direction"
+                    "\n    INPUT_FILE             - input ASCII file containing the coordinates of the points"
+                    "\n                             (latitude, longitude, and depth) at which you want the values"
                     "\n    NMAX (optional)        - maximum degree of the spherical harmonics expansion"
 
                     "\n\n DESCRIPTION"
-                    "\n    Reads the desired model parameter, minimum depth, maximum depth, the coordinates of the point"
-                    "\n    in which you want the profile and the grid spacing along the radial direction, and creates a"
-                    "\n    one-dimensional profile of the model up to the requested spherical harmonics degree. In case"
+                    "\n    Reads the desired model parameter and the coordinates of the points from the INPUT_FILE and"
+                    "\n    outputs the corresponding values up to the requested spherical harmonics degree. In case"
                     "\n    you don't provide NMAX, all the coefficients, the routine will expand all the coefficients."
-                    "\n    If you want the perturbations instead of the absolute values, just add a 'd' at beginning of"
-                    "\n    the parameter code (e.g., dvs, drho, etc). The routine writes the output to a file called"
-                    "\n    PARAMETER_PF.dat.\n\n";
+                    "\n    If you want the perturbations instead of the absolute values, just add a 'd' at beginning"
+                    "\n    of the parameter code (e.g., dvs, drho, etc). The routine writes the result to the standard"
+                    "\n    output.\n\n";
 
   fprintf (stderr, "%s", help_menu);
 }
 
 int main (int argc, char *argv[])
 {
-  if (argc != 7 && argc != 8)
+  if (argc != 3 && argc != 4)
   {
     fprintf (stderr, "\n Error: wrong number of parameters on the comand line...\n");
     helpMenu ();
@@ -312,18 +304,22 @@ int main (int argc, char *argv[])
 
   unsigned nmax = UINT_MAX;
 
-  if (argc == 8) nmax = atoi (argv[7]);
+  if (argc == 4) nmax = atoi (argv[3]);
 
-  double dmin = atof (argv[2]);
-  double dmax = atof (argv[3]);
-  double t    = degree2Rad (90 - atof (argv[4]));
-  double p    = degree2Rad (atof (argv[5]));
-  double dr   = atof (argv[6]);
+  char *filename = argv[2];
 
-  unsigned nr = (unsigned) (fabs (dmax - dmin) / dr + 1);
+  fprintf (stderr, "\nReading coordinates file...");
 
-  double r1 = depth2R (dmax);
-  double r2 = depth2R (dmin);
+  unsigned np = 0;
+
+  if (checkCoordinatesIO (readNumberOfPoints (&np, filename))) return 1;
+
+  double rmin =  INFINITY;
+  double rmax = -INFINITY;
+
+  double R[np], Theta[np], Phi[np];
+
+  if (checkCoordinatesIO (readCoordinates (np, filename, &rmin, &rmax, R, Theta, Phi))) return 1;
 
   struct SphericalBoundaries sb;
 
@@ -334,7 +330,7 @@ int main (int argc, char *argv[])
   sb.pmin = -PI;
   sb.pmax =  PI;
 
-  if (r1 < sb.rmin || r1 > sb.rmax || r2 < sb.rmin || r2 > sb.rmax)
+  if (rmin < sb.rmin || rmax > sb.rmax)
   {
     fprintf (stderr, "\n Error: depths should be between %.1lf and %.1lf km....\n",
              r2Depth (sb.rmin), r2Depth (sb.rmax)); return 1;
@@ -364,21 +360,15 @@ int main (int argc, char *argv[])
 
   if (checkBlockModelIO (readBlockModel (prm, np_b, nt_b, nr_b, Bm))) return 1;
 
-  fprintf (stderr, "\nCreating output grid...\n");
+  double (*M) = malloc (sizeof (double[np]));
 
-  double R[nr];
-
-  createProfilePf (r1, r2, nr, R);
-
-  double (*M) = malloc (sizeof (double[nr]));
-
-  initializeArray (nr, M);
+  initializeArray (np, M);
 
   fprintf (stderr, "Zone 1 stretching from %.1lf to %.1lf km depth...\n",
            r2Depth (r1max), r2Depth (r1min));
   fprintf (stderr, "Expanding zone 1...");
 
-  expandCrust (&sb, r1min, r1max, nr, R, t, p,
+  expandCrust (&sb, r1min, r1max, np, R, Theta, Phi,
                np_b, nt_b, nr_b, Bm, M, nl, Mm, dvv);
 
   free (Bm);
@@ -424,7 +414,7 @@ int main (int argc, char *argv[])
            r2Depth (r2max), r2Depth (r2min));
   fprintf (stderr, "Expanding zone 2...");
 
-  expandMantel (r2min, r2max, nr, R, t, p, ns2, dg2, nnt2, N2, nlg2, T2, A2, B2, M, nl, Mm, dvv);
+  expandMantel (r2min, r2max, np, R, Theta, Phi, ns2, dg2, nnt2, N2, nlg2, T2, A2, B2, M, nl, Mm, dvv);
 
   free (A2);
   free (B2);
@@ -470,7 +460,7 @@ int main (int argc, char *argv[])
            r2Depth (r3max), r2Depth (r3min));
   fprintf (stderr, "Expanding zone 3...");
 
-  expandMantel (r3min, r3max, nr, R, t, p, ns3, dg3, nnt3, N3, nlg3, T3, A3, B3, M, nl, Mm, dvv);
+  expandMantel (r3min, r3max, np, R, Theta, Phi, ns3, dg3, nnt3, N3, nlg3, T3, A3, B3, M, nl, Mm, dvv);
 
   free (A3);
   free (B3);
@@ -514,17 +504,14 @@ int main (int argc, char *argv[])
 
   fprintf (stderr, "Zone 4 stretching from %.1lf to %.1lf km depth...\n",
            r2Depth (r4max), r2Depth (r4min));
-  fprintf (stderr, "Expanding zone 4...");
+  fprintf (stderr, "Expanding zone 4...\n\n");
 
-  expandMantel (r4min, r4max, nr, R, t, p, ns4, dg4, nnt4, N4, nlg4, T4, A4, B4, M, nl, Mm, dvv);
+  expandMantel (r4min, r4max, np, R, Theta, Phi, ns4, dg4, nnt4, N4, nlg4, T4, A4, B4, M, nl, Mm, dvv);
 
   free (A4);
   free (B4);
 
-  fprintf (stderr, "\n\nWriting expansion...\n");
-
-  if (checkExpansionIO (writeExpansionPf (argv, dvv,
-                                          nr, R, M))) return 1;
+  writeExpansionPath (np, M);
 
   free (M);
 
