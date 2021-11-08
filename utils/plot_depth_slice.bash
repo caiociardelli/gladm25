@@ -150,7 +150,7 @@ gmt xyz2grd $filename -G$grdname -Rg -I$dp/$dt -: -h3
 gmt makecpt -Cextra/tomo.cpt -T$cbmin/$cbmax > tomo_rescaled.cpt
 
 gmt begin $output pdf
-gmt set FONT_TITLE 20p,100
+gmt set FONT_TITLE 20p,Helvetica
 
   gmt grdimage $grdname -JR0/12c -Rg -Bxa90fg90 -Bya30fg30 -BWeSn+t"$title ($2 km depth)" -Ctomo_rescaled.cpt
 

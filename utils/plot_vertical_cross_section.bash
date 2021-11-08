@@ -209,7 +209,7 @@ gmt xyz2grd $filename -G$grdname -R$dmin/$dmax/$rmin/$rmax -I$dd/$dr -: -h4
 gmt makecpt -Cextra/tomo.cpt -T$cbmin/$cbmax > tomo_rescaled.cpt
 
 gmt begin $output pdf
-  gmt set FONT_TITLE 20p,100
+  gmt set FONT_TITLE 20p,Helvetica
 
   gmt grdimage $grdname -JPa10c/$dmean -R$dmin/$dmax/$rmin/$Rmax -BWeS+t$title -Baf -Ctomo_rescaled.cpt
 

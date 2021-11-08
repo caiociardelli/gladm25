@@ -140,7 +140,7 @@ vmin=$(echo "$vmin - 0.1 * $vrange" | bc -l)
 vmax=$(echo "$vmax + 0.1 * $vrange" | bc -l)
 
 gmt begin $output pdf
-  gmt set FONT_TITLE 20p,100
+  gmt set FONT_TITLE 20p,Helvetica
 
   gmt basemap -R$vmin/$vmax/$dmin/$dmax -JX5c/-7.5c -BWSne+t$title -Bxafg+l"$label" -Bya500fg500+l"depth (km)"
 
