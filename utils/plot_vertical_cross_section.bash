@@ -161,10 +161,6 @@ vstring=$(echo "$string" | cut -f4 | gawk -F '[</>]' '{print $2" "$3}')
 drange=$(echo $dstring | gawk '{printf "%lf", $2 - $1}')
 rrange=$(echo $rstring | gawk '{printf "%lf", $2 - $1}')
 
-if [ $drange > 180 ]; then
-  lon0=$(echo "$lon0 + 180" | bc -l)
-fi
-
 dd=$(echo "$drange / ($nd - 1)" | bc -l)
 dr=$(echo "$rrange / ($nr - 1)" | bc -l)
 
